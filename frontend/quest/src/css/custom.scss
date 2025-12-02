@@ -1,0 +1,71 @@
+@import "../../node_modules/bootstrap/scss/functions";
+@import "../../node_modules/bootstrap/scss/variables";
+@import "../../node_modules/bootstrap/scss/mixins";
+
+
+.dark {
+	
+	$enable-gradients: true;
+
+	/* redefine theme colors for dark theme */
+	$secondary: #535353;
+	$success: #7df67d;
+	$dark: #000;
+	$light: #777;
+	
+	$theme-colors: (
+		"primary": $primary,
+		"secondary": $secondary,
+		"success": $success,
+		"danger": $danger,
+		"info": $info,
+		"dark": $dark,
+		"light": $light,
+		);
+
+		/* redefine theme color variables */
+		@each $color, $value in $theme-colors {
+			--#{$variable-prefix}#{$color}: #{$value};
+		}
+		
+		$theme-colors-rgb: map-loop($theme-colors, to-rgb, "$value");
+		
+		@each $color, $value in $theme-colors-rgb {
+			--#{$variable-prefix}#{$color}-rgb: #{$value};
+		}
+		
+	$body-color: #ccc;
+	$body-bg: #282828;
+	$form-text-color: $body-color;
+	$card-border-color: black;
+	$card-bg: #424242;
+	$navbar-dark-brand-color: red;
+	$navbar-dark-active-color: black;
+	$dark-navbar-color: pink;
+	$scrollbar-track: #3a3a3a;
+	$scrollbar-thumb:#888;
+
+	&::-webkit-scrollbar {
+		width: 8px;
+	}
+
+	&::-webkit-scrollbar-track {
+		background: $scrollbar-track;
+		border-radius: 8px;
+	}
+
+	&::-webkit-scrollbar-thumb {
+		background: $scrollbar-thumb;
+		border-radius: 4px;
+	}
+
+	scrollbar-width: thin;
+	scrollbar-color: $scrollbar-thumb $scrollbar-track;
+	
+	--#{$variable-prefix}body-color: #{$body-color};
+	--#{$variable-prefix}body-bg: #{$body-bg};
+	@import "bootstrap";
+}
+
+@import "../../node_modules/bootstrap/scss/bootstrap";
+
