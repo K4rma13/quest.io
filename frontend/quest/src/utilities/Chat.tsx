@@ -37,7 +37,7 @@ function Chat(){
 		return () => {
 			socket.off("connect", conFun)
 		}
-	},[])
+	},[navigate])
 
 	useEffect(() => {
 		if (chatRef.current) {
