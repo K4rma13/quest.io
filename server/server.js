@@ -113,9 +113,10 @@ app.get("/api/logged", async (req,res) =>{
 })
 
 app.get("/api/rooms", async (req,res) =>{
-	const dbquery = "SELECT label,descr,id,capacity,passwd FROM rooms";
+	const dbquery = "SELECT label,descr,rooms.id,capacity,rooms.passwd,user.username FROM rooms INNER JOIN user ON rooms.ownerid=user.id";
 	try{
-		r = await db.query(dbquery);
+		const r = await db.query(dbquery);
+		console.log(r)
 		r.forEach(room => {
 			room.passwd = !(room.passwd == null);
 			if(rooms[room.id]) room.count = rooms[room.id].length;
@@ -129,19 +130,32 @@ app.get("/api/rooms", async (req,res) =>{
 	}
 })
 
+app.get("/api/players", async (req,res)=>{
+	if(rooms[req.signedCookies.room]) res.status(200).send(rooms[req.signedCookies.room]);
+	else res.status(200).send([]);
+})
+
 app.post("/api/joinroom", async (req,res)=>{
 	const dbquery = "SELECT passwd FROM rooms WHERE id=?"
 	try{
 		r = await db.query(dbquery,req.body.id)
 		if(!r[0].passwd) {
 			res.cookie("room",req.body.id,{signed:true});
-			res.status(200).send(true);
+			res.status(200).send("room");
 		}
-		else res.status(200).send(false)
+		else if(r[0].passwd && req.body.passwd){
+			console.log(`${req.signedCookies.sign} is trying to joining room ${req.body.id}\nPasswd: ${req.body.passwd}`)
+			if(r[0].passwd == req.body.passwd){
+				res.cookie("room",req.body.id,{signed:true});
+				res.status(200).send("room");
+			}
+			else res.status(200).send("passwd")
+		}
+		else res.status(200).send("passwd")
 	}
 	catch(err){
 		console.log(err)
-		res.status(200).send(false)
+		res.status(500).send("home")
 	}
 })
 

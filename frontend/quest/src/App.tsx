@@ -4,6 +4,7 @@ import Register from "./Register"
 import Simple from "./Simple"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import Room from "./Room"
+import UsersList from "./utilities/UsersList"
 
 function App() {
 	return (
@@ -14,6 +15,7 @@ function App() {
 				<Route path="/teste" element={<Simple />} />
 				<Route path="/register" element={<Register />} />
 				<Route path="/room" element={<Room />} />
+				<Route path="/test" element={<UsersList room="1"/>} />
 			</Routes>
 		</BrowserRouter>
 	)

@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './css/custom.scss'
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import App from './App.tsx'
 
 //const htmlElement = document.querySelector('html');

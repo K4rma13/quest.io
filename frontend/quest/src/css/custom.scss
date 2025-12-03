@@ -34,6 +34,9 @@
 			--#{$variable-prefix}#{$color}-rgb: #{$value};
 		}
 		
+		
+	$modal-footer-border-width: 0;
+	$modal-header-border-width: 0;
 	$body-color: #ccc;
 	$body-bg: #282828;
 	$form-text-color: $body-color;

@@ -9,17 +9,14 @@ function Chat(){
 	const [messages,setMessages] = useState([""])
 	const navigate = useNavigate()
 	const chat = []
-	
-	
+
 
 	const dataFun = (arg:string) =>{
 		setMessages([...messages,arg])
 	}
-	
 
 	socket.on("data", dataFun)
 
-	
 
 	useEffect(()=>{
 		const conFun = ()=>{
