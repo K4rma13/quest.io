@@ -13,10 +13,9 @@ function UsersList(){
     }
 
     useEffect(()=>{
-        getPlayers()
         const interval = setInterval(() => {
             getPlayers()
-        }, 2000);
+        }, 1500);
         return () => clearInterval(interval)
     },[])
 
@@ -27,7 +26,13 @@ function UsersList(){
     return(
 	<div className="card" style={{margin:"1rem",width:"13rem",height:"20rem",scrollBehavior:"smooth", border:0}}>
 			<ul className="list-group list-group-flush overflow-auto" style={{margin:"0.5rem",width:"12rem",height:"15rem"}}>
-                {playerdisplay}
+                {playerdisplay.length>0 ? playerdisplay : 
+                <div className="text-center" style={{marginTop:"7.5rem"}}>
+                <div className="spinner-border" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                </div>
+                </div>
+                }
             </ul>
 			<div className="card-body text-center">
 				<h5 className="card-title">Player list</h5>
