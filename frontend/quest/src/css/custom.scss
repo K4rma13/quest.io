@@ -1,6 +1,9 @@
 @import "../../node_modules/bootstrap/scss/functions";
 @import "../../node_modules/bootstrap/scss/variables";
 @import "../../node_modules/bootstrap/scss/mixins";
+$bootstrap-icons-font-dir: "../../node_modules/bootstrap-icons/font/fonts";
+@import "../../node_modules/bootstrap-icons/font/bootstrap-icons";
+
 
 
 .dark {
@@ -62,13 +65,14 @@
 		border-radius: 4px;
 	}
 
+	
 	scrollbar-width: thin;
 	scrollbar-color: $scrollbar-thumb $scrollbar-track;
 	
 	--#{$variable-prefix}body-color: #{$body-color};
 	--#{$variable-prefix}body-bg: #{$body-bg};
+	
 	@import "bootstrap";
 }
-
 @import "../../node_modules/bootstrap/scss/bootstrap";
 
