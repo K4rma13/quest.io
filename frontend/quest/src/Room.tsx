@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { isLogged } from "./utilities/sessionHandler"
 import socket from "./utilities/socket"
 import UsersList from "./utilities/UsersList"
+import Questions from "./utilities/Questions"
 
 
 function Room(){
@@ -23,10 +24,13 @@ function Room(){
 		<div className="d-flex justify-content-end">
 		<button style={{width: "6rem",height: "3rem"}} className="btn btn-secondary p-1" onClick={goHome}>Leave</button>
 		</div>
-		<div className="d-flex flex-row flex-wrap justify-content-start p-4 mb-3">
+		<div className="d-flex flex-row flex-wrap justify-content-between p-4 mb-3">
 			{!logged ? <Navigate to="/login" replace /> : <></>}
-			<Chat />
-			<UsersList />
+			<Questions />
+			<div className="d-flex flex-row">
+				<Chat />
+				<UsersList />
+			</div>
 		</div>
 		</>
 	)

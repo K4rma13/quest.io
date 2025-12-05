@@ -38,7 +38,7 @@ function Home(){
 				<LogoutButton />
 			</div>
 			<h1>Rooms</h1>
-			<button className="btn btn-secondary" onClick={refreshRooms}>🔄</button>
+			<button className="btn btn-secondary" onClick={refreshRooms}><i className="bi bi-arrow-clockwise fs-5 text-dark"></i></button>
 			<div className="d-flex flex-row flex-wrap justify-content-start p-4 mb-3">
 				{cards}
 			</div>
