@@ -32,6 +32,8 @@ db.getConnection((err,connection)=>{
 })
 
 const rooms = {};
+const roomquest = {};
+const roominfo = {};
 
 const app = express();
 
@@ -56,10 +58,11 @@ app.get("/api", async (req,res) =>{
 
 app.post("/api/login", async (req,res) =>{
 	console.log("pedido login")
-	const dbquery = "SELECT passwd FROM user WHERE username=?";
 	const username = req.body.user;
+	const dbquery = `SELECT passwd FROM user WHERE username='${username}'`;
 	try{
-		const pass = await db.query(dbquery,username);
+		const pass = await db.query(dbquery);
+		console.log(pass)
 		bcrypt.compare(req.body.passwd,pass[0].passwd, (err,r) =>{
 			if(r) {
 				res.cookie("sign",username,{signed:true});
@@ -68,7 +71,8 @@ app.post("/api/login", async (req,res) =>{
 			else res.status(200).send("wrong password");
 		})
 	}
-	catch {
+	catch(err) {
+		console.log(err)
 		res.status(200).send("Wrong User")
 	}
 })
@@ -87,6 +91,7 @@ app.post("/api/register", async (req,res) =>{
 				res.status(200).send("Good")
 			}
 			catch(error){
+				console.log(error)
 				if(error.message.search("'email'")!=-1){
 					res.status(200).send("email")
 				}
@@ -116,7 +121,6 @@ app.get("/api/rooms", async (req,res) =>{
 	const dbquery = "SELECT label,descr,rooms.id,capacity,rooms.passwd,user.username FROM rooms INNER JOIN user ON rooms.ownerid=user.id";
 	try{
 		const r = await db.query(dbquery);
-		console.log(r)
 		r.forEach(room => {
 			room.passwd = !(room.passwd == null);
 			if(rooms[room.id]) room.count = rooms[room.id].length;
@@ -194,13 +198,86 @@ io.use(async (socket,next) =>{
 	else next(new Error("No room"));
 })
 
+
+
 io.on("connection", socket =>{
 	//console.log(socket.request.headers.cookie.sign)
-
+	
 	socket.on("message", (args)=>{
 		socket.to(socket.request.signedCookies.room).emit("data",`${socket.request.signedCookies.sign}: ${args}`)
 		socket.emit("data",`${socket.request.signedCookies.sign}: ${args}`)
 	})
+
+	const sendQuestion = (roomid) =>{
+		const c = roominfo[roomid].curr++;
+		const data = {
+			quest: roomquest[roomid].quest[c],
+			ans: roomquest[roomid].ans[c]
+		}
+		console.log(data)
+		roominfo[roomid].ans = {}
+		io.to(roomid).emit("question", data);
+	}
+
+	socket.on("start_game", async ()=>{
+		const roomid = socket.request.signedCookies.room;
+		
+		const dbquery = "SELECT quest, answers, questionaire_id FROM question,rooms WHERE rooms.id=? AND rooms.quest_id=question.questionaire_id ORDER BY question.ord"
+		try{
+			const r = await db.query(dbquery,roomid);
+			console.log(r);
+
+			const questions = [];
+			const answers = [];
+			for(let i =0; i< r.length;i++){
+				questions.push(r[i].quest)
+				answers.push(r[i].answers.split(";"))
+			}
+
+			roomquest[roomid]={
+				quest : questions,
+				ans : answers
+			};
+			roominfo[roomid]={
+				quest_id : r[0].questionaire_id,
+				curr : 0,
+				players: [...rooms[roomid]],
+				ans : {}
+			};
+			console.log(roominfo[roomid]);
+			sendQuestion(roomid);
+		}
+		catch(err){
+			console.log(err)
+		}
+	})
+
+	const saveAnswers = async (roomid)=>{
+		const insertquery = "INSERT INTO answer (room_id,answeredby,choice,ord) VALUES (?,?,?,?);"
+		const curInfo = roominfo[roomid];
+		for(let i=0; i<curInfo.players.length; i++){
+			try{
+				const cplayer = curInfo.players[i];
+				db.query(insertquery,[roomid,cplayer,curInfo.ans[cplayer],curInfo.curr])
+			}
+			catch(err){
+				console.log(err)
+			}
+		}
+	}
+
+	socket.on("option", async (args)=>{
+		const roomid = socket.request.signedCookies.room;
+		if(args>=0&&args<roomquest[roomid].ans[roominfo[roomid].curr-1].length){
+			const socketid = socket.request.signedCookies.sign
+			roominfo[roomid].ans[socketid] = args
+			if(roominfo[roomid].players.length == Object.keys(roominfo[roomid].ans).length){
+				await saveAnswers(roomid);
+				sendQuestion(roomid)
+			}
+		}
+	})
+
 
 	socket.on("disconnect", (reason) => {
 		const room = socket.request.signedCookies.room;
