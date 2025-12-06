@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS question(
     FOREIGN KEY(questionaire_id)
         REFERENCES questionaire(id)
 );
-DROP TABLE answer;
+
 CREATE TABLE IF NOT EXISTS answer(
     room_id INT NOT NULL,
     answeredby VARCHAR(25) NOT NULL,
