@@ -17,7 +17,8 @@ const db = mariadb.createPool({
 	user: process.env.USERDB,
 	password: process.env.PASSWD,
 	database: process.env.DB,
-	connectionLimit: 5
+	connectionLimit: 10,
+	initializationTimeout: 30000
 })
 
 console.log("grrr");
@@ -34,6 +35,7 @@ db.getConnection((err,connection)=>{
 const rooms = {};
 const roomquest = {};
 const roominfo = {};
+const roomanswers = {};
 
 const app = express();
 
@@ -59,9 +61,9 @@ app.get("/api", async (req,res) =>{
 app.post("/api/login", async (req,res) =>{
 	console.log("pedido login")
 	const username = req.body.user;
-	const dbquery = `SELECT passwd FROM user WHERE username='${username}'`;
+	const dbquery = 'SELECT passwd FROM user WHERE username=?';
 	try{
-		const pass = await db.query(dbquery);
+		const pass = await db.query(dbquery,username);
 		console.log(pass)
 		bcrypt.compare(req.body.passwd,pass[0].passwd, (err,r) =>{
 			if(r) {
@@ -118,7 +120,7 @@ app.get("/api/logged", async (req,res) =>{
 })
 
 app.get("/api/rooms", async (req,res) =>{
-	const dbquery = "SELECT label,descr,rooms.id,capacity,rooms.passwd,user.username FROM rooms INNER JOIN user ON rooms.ownerid=user.id";
+	const dbquery = "SELECT label,descr,rooms.id,capacity,rooms.passwd,user.username FROM rooms INNER JOIN user ON rooms.ownerid=user.id WHERE rooms.available=1";
 	try{
 		const r = await db.query(dbquery);
 		r.forEach(room => {
@@ -183,15 +185,45 @@ io.use(async (socket,next) =>{
 		}
 		if(rooms[room].indexOf(socketuser)!=-1) next(new Error("User already in room"))
 		else{
-			rooms[room].push(socketuser)
-			const r = await db.query("SELECT available,capacity FROM rooms WHERE id=?",room)
-			if(!r[0].available || rooms[room].length > r[0].capacity) next(new Error("Room full or not available"));
-			else{
-				console.log(`${socketuser} is joining room ${room}`)
-				socket.join(room)
-				socket.to(room).emit("data", `${socketuser} has joined`)
-				console.log(rooms)
-				next();
+			try{
+				const r = await db.query("SELECT available,capacity,username FROM rooms INNER JOIN user ON rooms.ownerid=user.id WHERE rooms.id=?",room)
+				console.log(`ROOM ${room} INFO`)
+				console.log(r)
+				if((!r[0].available && !(roominfo[room] && roominfo[room].players.includes(socketuser))) || rooms[room].length > r[0].capacity) next(new Error("Room full or not available"));
+				else{
+					rooms[room].push(socketuser)
+					console.log(`${socketuser} is joining room ${room}`)
+					socket.join(room)
+					socket.to(room).emit("data", `${socketuser} has joined`)
+					if(roominfo[room] && roominfo[room].players.includes(socketuser)) {
+						const c = roominfo[room].curr-1;
+						const data = {
+							quest: roomquest[room].quest[c],
+							owner: roominfo[room].owner == socketuser,
+							ans: roomquest[room].ans[c]
+						}
+						console.log(`qeustlength: ${roomquest[room].quest.length} c: ${c}`)
+						if(roomquest[room].quest.length == c){
+							data.quest = "Waiting for Results",
+							data.ans = []
+						}
+						console.log(data)
+						socket.emit("question", data);
+					}
+					else{
+						const data = {
+							quest: "Waiting for game to begin",
+							owner: r[0].username == socketuser,
+							ans: []
+						}
+						socket.emit("question", data);
+					}
+					console.log(rooms)
+					next();
+				}
+			}
+			catch(err){
+				console.log(err)
 			}
 		}
 	}
@@ -212,6 +244,7 @@ io.on("connection", socket =>{
 		const c = roominfo[roomid].curr++;
 		const data = {
 			quest: roomquest[roomid].quest[c],
+			owner: 0,
 			ans: roomquest[roomid].ans[c]
 		}
 		console.log(data)
@@ -221,34 +254,42 @@ io.on("connection", socket =>{
 
 	socket.on("start_game", async ()=>{
 		const roomid = socket.request.signedCookies.room;
-		
-		const dbquery = "SELECT quest, answers, questionaire_id FROM question,rooms WHERE rooms.id=? AND rooms.quest_id=question.questionaire_id ORDER BY question.ord"
-		try{
-			const r = await db.query(dbquery,roomid);
-			console.log(r);
-
-			const questions = [];
-			const answers = [];
-			for(let i =0; i< r.length;i++){
-				questions.push(r[i].quest)
-				answers.push(r[i].answers.split(";"))
+		const checkAvailable = "SELECT available,username FROM rooms INNER JOIN user ON user.id=rooms.ownerid WHERE rooms.id=?"
+		const aval = await db.query(checkAvailable, roomid);
+		console.log(aval)
+		console.log(socket.request.signedCookies.sign)
+		if(aval[0].available && aval[0].username==socket.request.signedCookies.sign){
+			const closeRoom = "UPDATE rooms SET available=0 WHERE id=?"
+			try{
+				await db.query(closeRoom,roomid)
+				const dbquery = "SELECT quest, answers, questionaire_id FROM question,rooms WHERE rooms.id=? AND rooms.quest_id=question.questionaire_id ORDER BY question.ord"
+				const r = await db.query(dbquery,roomid);
+				console.log(r);
+	
+				const questions = [];
+				const answers = [];
+				for(let i =0; i< r.length;i++){
+					questions.push(r[i].quest)
+					answers.push(r[i].answers.split(";"))
+				}
+	
+				roomquest[roomid]={
+					quest : questions,
+					ans : answers
+				};
+				roominfo[roomid]={
+					quest_id : r[0].questionaire_id,
+					curr : 0,
+					owner: aval[0].username,
+					players: [...rooms[roomid]],
+					ans : {}
+				};
+				console.log(roominfo[roomid]);
+				sendQuestion(roomid);
 			}
-
-			roomquest[roomid]={
-				quest : questions,
-				ans : answers
-			};
-			roominfo[roomid]={
-				quest_id : r[0].questionaire_id,
-				curr : 0,
-				players: [...rooms[roomid]],
-				ans : {}
-			};
-			console.log(roominfo[roomid]);
-			sendQuestion(roomid);
-		}
-		catch(err){
-			console.log(err)
+			catch(err){
+				console.log(err)
+			}
 		}
 	})
 
@@ -273,7 +314,68 @@ io.on("connection", socket =>{
 			roominfo[roomid].ans[socketid] = args
 			if(roominfo[roomid].players.length == Object.keys(roominfo[roomid].ans).length){
 				await saveAnswers(roomid);
-				sendQuestion(roomid)
+				console.log(`${roomquest[roomid].quest.length} : ${roominfo[roomid].curr}`)
+				if(roomquest[roomid].quest.length > roominfo[roomid].curr) sendQuestion(roomid)
+				else {
+					roominfo[roomid].curr++;
+					const data = {
+						quest: "Results",
+						owner: 0,
+						ans: []
+					}
+					io.to(roomid).emit("question",data)
+				}
+			}
+		}
+	})
+
+	socket.on("results",()=>{
+		const roomid = socket.request.signedCookies.room;
+		const data = {
+			quest: "Waiting for Results",
+			owner: socket.request.signedCookies.sign==roominfo[roomid].owner,
+			ans: []
+		}
+		socket.emit("question",data)
+	})
+
+
+	socket.on("result_request", async (ans)=>{
+		const roomid = socket.request.signedCookies.room;
+		const socketuser = socket.request.signedCookies.sign
+		if(socketuser == roominfo[roomid].owner){
+			if(!ans || !roomanswers[roomid]){
+				try{
+					const seldb = "SELECT choice,answeredby,ord FROM rooms INNER JOIN answer ON rooms.id=answer.room_id WHERE rooms.id=? ORDER BY ord"
+					const r = await db.query(seldb,roomid)
+					roomanswers[roomid] = []
+					const answers = []
+					for(let i = 0; i<roomquest[roomid].quest.length; i++){
+						answers[i] = []
+						for(let j = 0; j<roomquest[roomid].ans[i].length; j++){
+							answers[i][j] = []
+						}
+					}
+					for(let i = 0; i<r.length;i++){
+						answers[r[i].ord-1][r[i].choice].push(r[i].answeredby)
+					}
+					console.log(answers)
+					for(let i = 0; i<roomquest[roomid].quest.length; i++){
+						roomanswers[roomid].push({
+							quest: roomquest[roomid].quest[i],
+							options: roomquest[roomid].ans[i],
+							values: [...answers[i]]
+						})
+					}
+					console.log(roomanswers[roomid])
+					io.to(roomid).emit("results",roomanswers[roomid][0]);
+				}
+				catch(err){
+					console.log(err)
+				}
+			}
+			else{
+				io.to(roomid).emit("results",roomanswers[roomid][ans]);
 			}
 		}
 	})

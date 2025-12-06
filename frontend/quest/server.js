@@ -13,19 +13,16 @@ const PORT = 4173;
 app.use(
     "/api",
     createProxyMiddleware({
-        target: "http://localhost:3000/api/", // your backend server
+        target: "http://backnode:3000/api/", // your backend server
         changeOrigin: true,
         pathRewrite: {
-        '/api': '/api' // Optional: rewrite the path
-        } // optional, useful for testing
+        '/api': '/api' 
+        } 
     })
 );
-// Serve React build
+
 app.use(express.static(path.join(__dirname, "dist")));
 
-// Proxy /api requests to backend server
-
-// SPA fallback (React Router)
 
 app.get(/^\/(?!api).*$/, (req, res) => {
     res.sendFile(path.join(__dirname, "dist", "index.html"));

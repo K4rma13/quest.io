@@ -19,6 +19,10 @@ function Room(){
 		socket.disconnect()
 		navigate("/")
 	}
+
+	
+
+
 	return(
 		<>
 		<div className="d-flex justify-content-end">
