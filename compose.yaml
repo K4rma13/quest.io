@@ -1,0 +1,40 @@
+services:
+  frontnode:
+    image: k4rma/frontquest:latest
+    ports:
+      - 5173:4173
+    command: npm run start
+    networks:
+      - private
+  backnode:
+    image: k4rma/backquest:latest
+    ports:
+      - 3000:3000
+    command: npm run start
+    networks:
+      - private
+    depends_on:
+      - mariadb
+    restart: unless-stopped
+  
+  mariadb:
+    image: mariadb:12.1.2-ubi10
+    environment:
+      MARIADB_ROOT_PASSWORD: asdasdasd
+    volumes:
+      - mariadbquest:/var/lib/mysql
+    ports: 
+      - 3306:3306
+    networks:
+      - private
+
+volumes:
+  mariadbquest:
+
+networks:
+  private:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: "10.0.0.0/19"
+          gateway: "10.0.0.1"
