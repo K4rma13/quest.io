@@ -1,5 +1,6 @@
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Chart } from "chart.js/auto";
+import { Chart as _Chart } from "chart.js/auto";
 import { Bar } from "react-chartjs-2";
 import ListPopup from "./ListPopup";
 import { useState } from "react";
@@ -15,6 +16,7 @@ interface popdata{
 }
 
 function AnswerGraph({data}:{data:data}){
+	
 	const [popup,setPopup] = useState(false)
 	const [popdata,setPopdata] = useState<popdata>({choice:"",players:[]});
 	

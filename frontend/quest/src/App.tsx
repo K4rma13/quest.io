@@ -3,6 +3,8 @@ import Login from "./Login"
 import Register from "./Register"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import Room from "./Room"
+import Questionaire from "./Questionaire"
+import CreateRoom from "./CreateRoom"
 
 function App() {
 	return (
@@ -12,6 +14,8 @@ function App() {
 				<Route path="/login" element={<Login />} />
 				<Route path="/register" element={<Register />} />
 				<Route path="/room" element={<Room />} />
+				<Route path="/quest" element={<Questionaire />} />
+				<Route path="/createroom" element={<CreateRoom />} />
 			</Routes>
 		</BrowserRouter>
 	)

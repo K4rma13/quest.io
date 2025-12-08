@@ -40,7 +40,7 @@ function Login(){
 			<form onSubmit={handleSubmit}>
 				<label className="form-label">Username</label>
 				<input type="text" onChange={e => setData({...data, user: e.target.value})} className="form-control" id="username" aria-describedby="emailHelp"/>
-				<div className="form-text">We'll never share your email with anyone else.</div>
+				
 				<div className='p-2'/>
 				<label className="form-label">Password</label>
 				<input type="password" onChange={e => setData({...data, passwd: e.target.value})} className="form-control" id="passwd"/>

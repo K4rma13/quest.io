@@ -3,4 +3,5 @@ WORKDIR /app
 COPY package* .
 RUN npm install
 COPY . .
+RUN mv .env .env-local
 RUN npm run build
