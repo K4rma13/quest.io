@@ -4,7 +4,7 @@ const mariadb = require('mariadb');
 const cookieParser = require('cookie-parser');
 const iocookieParser = require('socket.io-cookie-parser')
 const bcrypt = require('bcrypt');
-const { createServer } = require('http')
+const { createServer, get } = require('http')
 const { Server } = require('socket.io')
 
 
@@ -136,10 +136,33 @@ app.get("/api/rooms", async (req,res) =>{
 	}
 })
 
+app.post("/api/createroom", async (req,res)=>{
+	if(req.signedCookies.sign){
+		const getiddb = "SELECT id FROM user WHERE username=?"
+		const insertdb = "INSERT INTO rooms (ownerid,label,quest_id,capacity,passwd,descr,available) VALUES (?,?,?,?,?,?,1)"
+		try{
+			let userid = await db.query(getiddb,req.signedCookies.sign)
+			userid = userid[0].id
+			let passwd = null
+			if(req.body.passwd!="") passwd = req.body.passwd
+			console.log([userid,req.body.label,req.body.questid,req.body.cap,passwd,req.body.descr])
+			await db.query(insertdb,[userid,req.body.label,req.body.questid,req.body.cap,passwd,req.body.descr])
+			res.status(200).send("success")
+		}
+		catch(err){
+			console.log(err)
+			res.status(200).send("something went wrong")
+		}
+	}
+	else res.status(500).send("")
+})
+
 app.get("/api/players", async (req,res)=>{
 	if(rooms[req.signedCookies.room]) res.status(200).send(rooms[req.signedCookies.room]);
 	else res.status(200).send([]);
 })
+
+
 
 app.post("/api/joinroom", async (req,res)=>{
 	const dbquery = "SELECT passwd FROM rooms WHERE id=?"
@@ -162,6 +185,44 @@ app.post("/api/joinroom", async (req,res)=>{
 	catch(err){
 		console.log(err)
 		res.status(500).send("home")
+	}
+})
+
+app.post("/api/createquest", async (req,res)=>{
+	console.log("someting")
+	if(req.signedCookies.sign){
+		console.log(req.body)
+		const getid = "SELECT id FROM user WHERE user.username=?"
+		const insert1db = "INSERT INTO questionaire (title,ownerid) VALUES (?,?);"
+		try{
+			let userid = await db.query(getid, req.signedCookies.sign)
+			userid = userid[0].id
+			const r = await db.query(insert1db,[req.body.title,userid])
+			const questionaireid = Number(r.insertId)
+			console.log(questionaireid)
+			const insert2db = "INSERT INTO question (questionaire_id,quest,answers,ord) VALUES (?,?,?,?)"
+			for(let i=0; i<req.body.questions.length;i++){
+				db.query(insert2db,[questionaireid, req.body.questions[i], req.body.answers[i],i+1])
+			}
+		}
+		catch(err){
+			console.log(err)
+		}
+	}
+	else res.status(500).send("");
+})
+
+app.get("/api/quests", async (req,res)=>{
+	if(req.signedCookies.sign){
+		const seldb = "SELECT questionaire.id,title FROM questionaire INNER JOIN user ON user.id=questionaire.ownerid WHERE user.username=?"
+		try{
+			const r = await db.query(seldb, req.signedCookies.sign)
+			res.send(r)
+		}
+		catch(err){
+			console.log(err)
+			res.status(500).send("db error")
+		}
 	}
 })
 
@@ -344,7 +405,7 @@ io.on("connection", socket =>{
 		const roomid = socket.request.signedCookies.room;
 		const socketuser = socket.request.signedCookies.sign
 		if(socketuser == roominfo[roomid].owner){
-			if(!ans || !roomanswers[roomid]){
+			if(!roomanswers[roomid]){
 				try{
 					const seldb = "SELECT choice,answeredby,ord FROM rooms INNER JOIN answer ON rooms.id=answer.room_id WHERE rooms.id=? ORDER BY ord"
 					const r = await db.query(seldb,roomid)
@@ -375,7 +436,8 @@ io.on("connection", socket =>{
 				}
 			}
 			else{
-				io.to(roomid).emit("results",roomanswers[roomid][ans]);
+				if(ans) io.to(roomid).emit("results",roomanswers[roomid][ans]);
+				else io.to(roomid).emit("results",roomanswers[roomid][0]);
 			}
 		}
 	})
