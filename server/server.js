@@ -61,7 +61,8 @@ app.get("/api", async (req,res) =>{
 app.post("/api/login", async (req,res) =>{
 	console.log("pedido login")
 	const username = req.body.user;
-	const dbquery = 'SELECT passwd FROM user WHERE username=?';
+	// 'COLLATE utf8mb4_bin' makes username have character set utf8mb4_bin which is case sensitive
+	const dbquery = 'SELECT passwd FROM user WHERE username COLLATE utf8mb4_bin=?';
 	try{
 		const pass = await db.query(dbquery,username);
 		console.log(pass)
@@ -138,7 +139,11 @@ app.get("/api/rooms", async (req,res) =>{
 
 app.post("/api/createroom", async (req,res)=>{
 	if(req.signedCookies.sign){
-		const getiddb = "SELECT id FROM user WHERE username=?"
+		/*
+		'COLLATE utf8mb4_bin' makes username have character set utf8mb4_bin which is case sensitive
+		Prevents someone from stealing id of a different user with case insensitive matching usernames (ex. 'Karma' and 'karma')
+		*/ 
+		const getiddb = "SELECT id FROM user WHERE username COLLATE utf8mb4_bin=?"
 		const insertdb = "INSERT INTO rooms (ownerid,label,quest_id,capacity,passwd,descr,available) VALUES (?,?,?,?,?,?,1)"
 		try{
 			let userid = await db.query(getiddb,req.signedCookies.sign)
@@ -192,7 +197,11 @@ app.post("/api/createquest", async (req,res)=>{
 	console.log("someting")
 	if(req.signedCookies.sign){
 		console.log(req.body)
-		const getid = "SELECT id FROM user WHERE user.username=?"
+		/*
+		'COLLATE utf8mb4_bin' makes username have character set utf8mb4_bin which is case sensitive
+		Prevents someone from stealing id of a different user with case insensitive matching usernames (ex. 'Karma' and 'karma')
+		*/ 
+		const getid = "SELECT id FROM user WHERE user.username COLLATE utf8mb4_bin=?"
 		const insert1db = "INSERT INTO questionaire (title,ownerid) VALUES (?,?);"
 		try{
 			let userid = await db.query(getid, req.signedCookies.sign)
@@ -204,9 +213,11 @@ app.post("/api/createquest", async (req,res)=>{
 			for(let i=0; i<req.body.questions.length;i++){
 				db.query(insert2db,[questionaireid, req.body.questions[i], req.body.answers[i],i+1])
 			}
+			res.status(200).send("success")
 		}
 		catch(err){
 			console.log(err)
+			res.status(200).send("something went wrong")
 		}
 	}
 	else res.status(500).send("");
@@ -214,7 +225,7 @@ app.post("/api/createquest", async (req,res)=>{
 
 app.get("/api/quests", async (req,res)=>{
 	if(req.signedCookies.sign){
-		const seldb = "SELECT questionaire.id,title FROM questionaire INNER JOIN user ON user.id=questionaire.ownerid WHERE user.username=?"
+		const seldb = "SELECT questionaire.id,title FROM questionaire INNER JOIN user ON user.id=questionaire.ownerid WHERE user.username COLLATE utf8mb4_bin=?"
 		try{
 			const r = await db.query(seldb, req.signedCookies.sign)
 			res.send(r)
