@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import RoomCard from "./utilities/RoomCard";
 import LogoutButton from "./utilities/LogoutButton";
 import { userName } from "./utilities/sessionHandler";
@@ -10,6 +10,7 @@ import { userName } from "./utilities/sessionHandler";
 function Home(){
 	const [user, setUser] = useState(" ");
 	const [rooms,setRooms] = useState([]);
+	const navigate = useNavigate()
 	
 	const refreshRooms = async () =>{
 		axios.get("/api/rooms").then((res)=>{
@@ -39,6 +40,8 @@ function Home(){
 			</div>
 			<h1>Rooms</h1>
 			<button className="btn btn-secondary" onClick={refreshRooms}><i className="bi bi-arrow-clockwise fs-5 text-dark"></i></button>
+			<button className="btn btn-secondary" onClick={()=>navigate("/createroom")}>Create Room</button>
+			<button className="btn btn-secondary" onClick={()=>navigate("/quest")}>Create Questionnaire</button>
 			<div className="d-flex flex-row flex-wrap justify-content-start p-4 mb-3">
 				{cards}
 			</div>

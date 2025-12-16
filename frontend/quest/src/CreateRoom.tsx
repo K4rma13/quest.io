@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useEffect, useState, type ChangeEvent } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface data{
 	id:number,
@@ -14,6 +15,7 @@ function CreateRoom(){
 	const [description,setDescription] = useState("")
 	const [label,setLabel] = useState("")
 	const [password,setPassword] = useState("")
+	const navigate = useNavigate()
 	
 	useEffect(()=>{
 		axios.get("/api/quests")
@@ -51,6 +53,7 @@ function CreateRoom(){
 		}
 		axios.post("/api/createroom",data)
 		.then(res=>{
+			if(res.data=="success") navigate("/")
 			console.log(res.data)
 		})
 	}

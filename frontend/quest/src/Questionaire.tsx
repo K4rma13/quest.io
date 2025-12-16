@@ -1,6 +1,7 @@
 import { useState } from "react"
 import CreateQuestion from "./utilities/CreateQuestion"
 import axios from "axios"
+import { useNavigate } from "react-router-dom"
 
 function Questionaire(){
 	const [title,setTitle] = useState<string>("")
@@ -8,6 +9,7 @@ function Questionaire(){
 	const [choices,setChoices] = useState<Array<string>>([''])
 	const [removed,setRemoved] = useState<Array<number>>([])
 	const [questions,setQuestions] = useState<Array<string>>([''])
+	const navigate = useNavigate()
 
 	const logChoice = (e:string,i:number) =>{
 		const newChoices = [...choices.slice(0,i),e,...choices.slice(i+1)]
@@ -73,6 +75,9 @@ function Questionaire(){
 		}
 		if(!err){
 			axios.post("/api/createquest",data)
+			.then(res =>{
+				if(res.data=="success") navigate("/")
+			})
 		}
 	}
 
