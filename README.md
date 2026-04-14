@@ -2,8 +2,9 @@
 [![License](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
 # ⚡️ Quest.IO
 
+A real-time multiplayer questionnaire platform that allows users to create custom quizzes, host interactive rooms, and visualize results live.
 
-A real-time web application where users can create questionnaires, host interactive rooms, and analyze results live with visual feedback.
+The application supports live chat, synchronized gameplay, and real-time result aggregation, showcasing full-stack development and WebSocket-based communication.
 
 ---
 
@@ -99,6 +100,9 @@ A real-time web application where users can create questionnaires, host interact
 
 ## ⚙️ Installation
 
+> [!NOTE]
+> This project was developed as a proof of concept to explore real-time systems and full-stack development. It is intended for learning and testing purposes only and is not suitable for production use.
+
 ```bash
 docker build server/ -t k4rma/backquest:latest
 docker build frontend/quest/ -t k4rma/frontquest:latest
@@ -106,8 +110,6 @@ docker compose up
 cat createTables.sql | mariadb -h 127.0.0.1 -P 3306 -u root -pmariadbPASSWORD
 ```
 * The page will be accessible on `localhost:5173`. You can change the port on `compose.yaml`
-> [!NOTE]
-> This project was developed as a proof of concept to experiment with real-time systems and full-stack development.
 
 ---
 
