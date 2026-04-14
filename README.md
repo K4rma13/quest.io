@@ -1,5 +1,5 @@
 ![Status](https://img.shields.io/badge/status-completed-blue)
-![License](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
+![License](https://img.shields.io/badge/license-MIT-blue)(./LICENSE)
 # ⚡️ Quest.IO
 
 
