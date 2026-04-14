@@ -20,7 +20,7 @@ services:
   mariadb:
     image: mariadb:12.1.2-ubi10
     environment:
-      MARIADB_ROOT_PASSWORD: asdasdasd
+      MARIADB_ROOT_PASSWORD: mariadbPASSWORD
     volumes:
       - mariadbquest:/var/lib/mysql
     ports: 

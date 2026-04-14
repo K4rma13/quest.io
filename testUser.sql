@@ -3,8 +3,8 @@ INSERT INTO user (username,email,passwd) VALUES ('Testeuser','kaka@gmail.com','$
 INSERT INTO questionaire (title ,ownerid) VALUES ("Questionario Teste",1);
 
 --@block
-INSERT INTO question (questionaire_id, ord, quest, answers) VALUES (1,1,"Maior burro","Santos;Juan;Jota");
-INSERT INTO question (questionaire_id, ord, quest, answers) VALUES (1,2,"Maior burra","Filipa;Maggie;Maria;Ines");
+INSERT INTO question (questionaire_id, ord, quest, answers) VALUES (1,1,"Best anime","Chainsaw man;Frieren;Dandadan");
+INSERT INTO question (questionaire_id, ord, quest, answers) VALUES (1,2,"Coolest guy","Tesla;Einstein");
 
 --@block
 INSERT INTO rooms (label,descr,ownerid,available,capacity,quest_id) VALUES ('New Quest','sala para testes',4,1,8,8);
