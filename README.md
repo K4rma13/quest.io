@@ -57,6 +57,7 @@ The application supports live chat, synchronized gameplay, and real-time result 
 <img width="1506" height="781" alt="screenshot-2026-04-14_16-54-16" src="https://github.com/user-attachments/assets/f0515e15-06e1-4c7f-bf11-30bd581accab" />
 <img width="1506" height="781" alt="screenshot-2026-04-14_16-54-32" src="https://github.com/user-attachments/assets/a752d301-5321-4fd3-a1ac-ea7a459d827c" />
 <img width="1506" height="781" alt="screenshot-2026-04-14_16-55-12" src="https://github.com/user-attachments/assets/729b801a-c3fe-4896-82cd-6a0bb2add7ea" />
+<img width="1506" height="781" alt="screenshot-2026-04-14_16-55-43" src="https://github.com/user-attachments/assets/7ab06797-d20a-4d39-b067-679cfa3c2cec" />
 
 ---
 
