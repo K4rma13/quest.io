@@ -105,9 +105,9 @@ docker build frontend/quest/ -t k4rma/frontquest:latest
 docker compose up
 cat createTables.sql | mariadb -h 127.0.0.1 -P 3306 -u root -pmariadbPASSWORD
 ```
-* The page will be accessible on localhost:5173. You can change the port on `compose.yaml`
-> [!WARNING]
-> This was made as a proof of concept. It should NOT be used for commercial use or anything more than learning and testing.
+* The page will be accessible on `localhost:5173`. You can change the port on `compose.yaml`
+> [!NOTE]
+> This project was developed as a proof of concept to experiment with real-time systems and full-stack development.
 
 ---
 
