@@ -108,7 +108,15 @@ The application supports live chat, synchronized gameplay, and real-time result 
 docker build server/ -t k4rma/backquest:latest
 docker build frontend/quest/ -t k4rma/frontquest:latest
 docker compose up
+```
+
+After the MariaDB container is up and running use
+
+```bash
 cat createTables.sql | mariadb -h 127.0.0.1 -P 3306 -u root -pmariadbPASSWORD
+```
+
+```
 ```
 * The page will be accessible on `localhost:5173`. You can change the port on `compose.yaml`
 
